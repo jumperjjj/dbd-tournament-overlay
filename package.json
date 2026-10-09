@@ -1,44 +1,15 @@
 {
-  "name": "dbd-tournament-overlay",
-  "version": "1.1.0",
-  "description": "DBD Tournament Overlay",
-  "main": "main.js",
+  "name": "dbd-tournament-tauri",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Controle de torneios DBD com Tauri e dock para OBS",
   "author": "jumperjjj",
-  "license": "MIT",
   "scripts": {
-    "dist": "electron-builder --win nsis --x64 --publish never"
+    "preview": "node scripts/preview.cjs",
+    "test": "node --test tests/*.test.cjs",
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "dist": "tauri build"
   },
-  "devDependencies": {
-    "electron": "^38.1.2",
-    "electron-builder": "^26.0.12"
-  },
-  "build": {
-    "appId": "com.jumperjjj.dbdtournamentoverlay",
-    "productName": "DBD Tournament Overlay",
-    "asar": true,
-    "files": [
-      "main.js",
-      "icon.ico",
-      "app/**/*"
-    ],
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "icon": "icon.ico"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "DBD Tournament Overlay",
-      "artifactName": "DBD-Tournament-Overlay-Setup-${version}.${ext}"
-    }
-  }
+  "devDependencies": { "@tauri-apps/cli": "^2.0.0" }
 }
