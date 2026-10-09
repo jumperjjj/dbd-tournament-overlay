@@ -1,184 +1,29 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<link rel="stylesheet" href="overlay.css">
-</head>
-
-<body class="style-1">
-
-<div id="wrap">
-
-<div class="native-killer-gap" aria-hidden="true"></div>
-
-<div class="board">
-
-<div class="teamBlock teamA">
-<div class="identity">
-<div class="role" id="roleA"></div>
-<div class="teamName" id="nameA"></div>
-</div>
-<div class="stats" id="statsA"></div>
-</div>
-
-<div class="center">
-<div class="scoreline">
-<b id="scoreA"></b>
-<span>x</span>
-<b id="scoreB"></b>
-</div>
-</div>
-
-<div class="teamBlock teamB">
-<div class="identity">
-<div class="teamName" id="nameB"></div>
-<div class="role" id="roleB"></div>
-</div>
-<div class="stats" id="statsB"></div>
-</div>
-
-</div>
-
-<div class="lower">
-<div id="championship"></div>
-<div id="set"></div>
-</div>
-
-</div>
-
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>DBD Tournament Overlay</title><link rel="stylesheet" href="overlay.css"></head><body class="style-1">
+<div id="wrap"><div class="board"><div class="teamBlock teamA"><div class="teamCard"><div class="identity"><div class="role" id="roleA"></div><div class="teamName" id="nameA"></div></div><div class="stats" id="statsA"></div></div><div class="wins" id="winsA"></div></div><div class="center"><div class="scoreline"><b id="scoreA"></b><span>:</span><b id="scoreB"></b></div></div><div class="teamBlock teamB"><div class="teamCard"><div class="identity"><div class="teamName" id="nameB"></div><div class="role" id="roleB"></div></div><div class="stats" id="statsB"></div></div><div class="wins" id="winsB"></div></div></div><div class="lower"><div id="championship"></div><div id="set"></div></div></div>
 <script>
-
-const stat=(img,val,first=false)=>`
-<span class="stat ${first?'first':''}">
-${first?'<i>1st</i>':''}
-<img src="assets/${img}.png">
-<b>${val}</b>
-</span>`;
-
-const stats=d=>
-stat('generator',d.gen)+
-stat('hook',d.hook)+
-stat('hook',d.first,true);
-
-const role=(type,side)=>side==='A'
-? `<span>${type==='killer'?'KILLER':'SURVIVORS'}</span><img src="assets/${type}.png">`
-: `<img src="assets/${type}.png"><span>${type==='killer'?'KILLER':'SURVIVORS'}</span>`;
-
+const $=s=>document.querySelector(s);
+// Transparent in OBS. A separate browser test page may request a neutral background.
+if(new URLSearchParams(location.search).has('preview'))document.documentElement.style.background='#182124';
+function victoryMarks(wins,bestOf){const target=bestOf===3?2:3;const count=Math.max(0,Math.min(target,Math.round(Number(wins)||0)));return Array.from({length:target},(_,i)=>'<i class="win'+(i<count?' filled':'')+'" aria-hidden="true"></i>').join('');}
+function stats(data){return [['gen','generator'],['hook','hook'],['first','hook']].map(([key,img])=>'<span class="stat">'+(key==='first'?'<small>1<span class="ordinal">st</span></small>':'')+'<img alt="'+({gen:'Geradores',hook:'Ganchos',first:'Primeiros ganchos'}[key])+'" src="assets/'+img+'.png"><b>'+Math.max(0,Math.min({gen:5,hook:12,first:4}[key],Math.round(Number(data?.[key])||0)))+'</b></span>').join('');}
 function draw(s){
-
- document.body.className=
- 'style-'+(s.overlayStyle||1)+
- (s.showBorder===false?' no-border':'')+
- (s.textOutline===false?' no-outline':'')+
- (s.showRoles===false?' no-roles':'')+
- (s.showRoleLabels===false?' no-role-labels':'')+
- (s.showSet===false?' no-set':'');
-
- const root=document.documentElement;
-
- root.style.setProperty('--accent',s.accentColor||'#fff');
- root.style.setProperty('--name-color',s.nameColor||'#fff');
- root.style.setProperty('--number-color',s.numberColor||'#fff');
-
- /* FONTES v1.1.0 */
- root.style.setProperty('--text-font',s.textFont||'Arial');
- root.style.setProperty('--number-font',s.numberFont||'Arial');
- root.style.setProperty('--team-a-color',s.teamAColor||'#fff');
- root.style.setProperty('--team-b-color',s.teamBColor||'#fff');
- root.style.setProperty('--team-name-scale',(s.teamNameScale??100)/100);
- root.style.setProperty('--stats-scale',(s.statsScale??100)/100);
- root.style.setProperty('--champ-scale',(s.champScale??100)/100);
- root.style.setProperty('--role-icon-scale',(s.roleIconScale??100)/100);
- root.style.setProperty('--role-label-scale',(s.roleLabelScale??100)/100);
- root.style.setProperty('--set-scale',(s.setScale??100)/100);
-
- root.style.setProperty(
- '--bg-alpha',
- Math.max(0,Math.min(100,s.bgOpacity??88))/100
- );
-
- root.style.setProperty(
- '--hud-scale',
- Math.max(.75,Math.min(1.3,(s.hudScale??100)/100))
- );
-
- root.style.setProperty(
- '--hud-y',
- (s.hudY??78)+'px'
- );
-
- const o=Math.max(0,Math.min(5,s.outlineSize??2));
- const sh=Math.max(0,Math.min(12,s.shadowSize??4));
-
- root.style.setProperty('--outline',o+'px');
- root.style.setProperty('--shadow',sh+'px');
-
- for(const k of [
- 'nameAX','nameAY',
- 'nameBX','nameBY',
- 'roleAX','roleAY',
- 'roleBX','roleBY',
- 'statsAX','statsAY',
- 'statsBX','statsBY'
- ])
- root.style.setProperty('--'+k,(s[k]||0)+'px');
-
- const outline=
- s.textOutline===false
- ?'none'
- :`${-o}px ${-o}px 0 #000,
- ${o}px ${-o}px 0 #000,
- ${-o}px ${o}px 0 #000,
- ${o}px ${o}px 0 #000,
- 0 ${Math.max(1,sh*.65)}px ${sh}px #000`;
-
- document
- .querySelectorAll('.teamName,.stat,.scoreline,#set,.stat i')
- .forEach(el=>el.style.textShadow=outline);
-
- document
- .querySelectorAll('.stat img,.role img')
- .forEach(el=>
- el.style.filter=
- s.textOutline===false
- ?'none'
- :`drop-shadow(0 0 ${Math.max(1,o)}px #000)
- drop-shadow(0 ${Math.max(1,sh*.45)}px ${Math.max(1,sh*.55)}px #000)`
- );
-
- championship.textContent=
- s.championship||'DBD CHAMPIONSHIP';
-
- nameA.textContent=s.teamA;
- nameB.textContent=s.teamB;
-
- scoreA.textContent=s.scoreA;
- scoreB.textContent=s.scoreB;
-
- statsA.innerHTML=stats(s.a);
- statsB.innerHTML=stats(s.b);
-
- set.textContent='SET '+s.currentSet;
-
- const killer=
- s.killerSide==='B'?'B':'A';
-
- roleA.innerHTML=
- role(killer==='A'?'killer':'survivor','A');
-
- roleB.innerHTML=
- role(killer==='B'?'killer':'survivor','B');
-
+ const style=Math.max(1,Math.min(8,Math.round(Number(s.overlayStyle)||1)));
+ document.body.className='style-'+style+(style>4?' marked':' numeric')+(s.teamHighlights===false?' uniform':'')+(s.overlayGradient===false?' no-gradient':'');
+ const root=document.documentElement;root.style.setProperty('--number','#ffffff');root.style.setProperty('--gradient',s.overlayGradient===false?'0':'1');
+ for(const [variable,key,fallback] of [['--a','teamAColor','#8ba99f'],['--b','teamBColor','#94a1b8'],['--accent','accentColor','#d4dedf']])root.style.setProperty(variable,/^#[0-9a-f]{6}$/i.test(s[key])?s[key]:fallback);
+ if(s.teamHighlights===false){const shared=/^#[0-9a-f]{6}$/i.test(s.accentColor)?s.accentColor:'#d4dedf';root.style.setProperty('--a',shared);root.style.setProperty('--b',shared);}
+ root.style.setProperty('--top',Math.max(6,Math.min(100,Number(s.hudTop??78)))+'px');
+ root.style.setProperty('--scale',Math.max(.9,Math.min(1.1,(Number(s.hudScale)||100)/100)));
+ const background=/^#[0-9a-f]{6}$/i.test(s.bgColor)?s.bgColor:'#151d23';root.style.setProperty('--bg-rgb',[1,3,5].map(i=>parseInt(background.slice(i,i+2),16)).join(' '));root.style.setProperty('--opacity',Math.max(0,Math.min(100,Number(s.bgOpacity??85)))/100);
+ const lower=$('.lower');const host=style>4?$('.center'):$('#wrap');if(lower.parentElement!==host)host.appendChild(lower);
+ $('#nameA').textContent=s.teamA||'TIME A';$('#nameB').textContent=s.teamB||'TIME B';
+ $('#scoreA').textContent=s.scoreA;$('#scoreB').textContent=s.scoreB;
+ $('#statsA').innerHTML=stats(s.a);$('#statsB').innerHTML=stats(s.b);
+ $('#championship').textContent=s.championship||'DBD CHAMPIONSHIP';$('#set').textContent='SET '+s.currentSet;
+ for(const side of ['A','B']){
+  const killer=s.killerSide===side;$('#role'+side).innerHTML='<img alt="'+(killer?'Killer':'Survivors')+'" src="assets/'+(killer?'killer':'survivor')+'.png">';
+  const wins=$('#wins'+side);wins.innerHTML=victoryMarks(s['score'+side],s.bestOf);wins.setAttribute('aria-label','Time '+side+': '+s['score'+side]+' de '+(s.bestOf===3?2:3)+' vitórias');
+ }
 }
-
-fetch('/state')
-.then(r=>r.json())
-.then(draw);
-
-new EventSource('/events')
-.onmessage=e=>draw(JSON.parse(e.data));
-
-</script>
-
-</body>
-</html>
+const events=new EventSource('/events');events.onmessage=e=>draw(JSON.parse(e.data));
+</script></body></html>

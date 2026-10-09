@@ -1,0 +1,30 @@
+{
+  "overlayStyle": 1,
+  "bestOf": 5,
+  "accentColor": "#d4dedf",
+  "teamAColor": "#8ba99f",
+  "teamBColor": "#94a1b8",
+  "hudScale": 100,
+  "killerSide": "A",
+  "championship": "DBD CHAMPIONSHIP",
+  "teamA": "TIME A",
+  "teamB": "TIME B",
+  "scoreA": 0,
+  "scoreB": 0,
+  "currentSet": 1,
+  "a": {
+    "gen": 0,
+    "hook": 0,
+    "first": 0
+  },
+  "b": {
+    "gen": 0,
+    "hook": 0,
+    "first": 0
+  },
+  "bgColor": "#151d23",
+  "bgOpacity": 85,
+  "teamHighlights": true,
+  "overlayGradient": true,
+  "hudTop": 78
+}

@@ -1,39 +1,74 @@
-let state; const $=s=>document.querySelector(s); let pendingColor=null; let activePreset=''; let draftPresetName='';
-const presetKeys=['accentColor','numberColor','teamAColor','teamBColor','bgOpacity','hudScale','teamNameScale','statsScale','champScale','roleIconScale','roleLabelScale','setScale'];
-const T={
- en:{'DBD Tournament Control':'DBD Tournament Control','Idioma':'Language','URLs para OBS e Dock':'URLs for OBS and Dock','URL para Fonte de Navegador do OBS':'URL for OBS Browser Source','Copiar URL':'Copy URL','Copiado!':'Copied!','Use 1920 × 1080 no OBS.':'Use 1920 × 1080 in OBS.','URL do Painel para Dock do OBS':'Panel URL for OBS Dock','No OBS: Painéis/Docks → Painéis de navegador personalizados.':'In OBS: Docks → Custom Browser Docks.','Campeonato':'Championship','Nome do campeonato':'Championship name','TIME A':'TEAM A','TIME B':'TEAM B','Gerador':'Generator','Gancho':'Hook','Primeiro Gancho':'First Hook','Set atual':'Current Set','Resetar contadores do set':'Reset set counters','Mostrar ícones Killer / Survivors':'Show Killer / Survivors icons','Mostrar nomes KILLER / SURVIVORS':'Show KILLER / SURVIVORS labels','Mostrar Set':'Show Set','Time que está de Killer':'Team playing Killer','Time A':'Team A','Time B':'Team B','Aparência e tamanho':'Appearance and size','Fonte dos textos / nomes':'Text / names font','Fonte dos números':'Numbers font','Destaque':'Accent','Números':'Numbers','Cor Time A':'Team A color','Cor Time B':'Team B color','Preset':'Preset','Salvar':'Save','Excluir':'Delete','Personalizado':'Custom','＋ Criar preset':'＋ Create preset','Opacidade':'Opacity','Tamanho da HUD':'HUD size','Nomes dos times':'Team names','Estatísticas + ícones':'Stats + icons','Nome do campeonato':'Championship name','Ícones Killer / Survivors':'Killer / Survivors icons','Nomes Killer / Survivors':'Killer / Survivors labels','Tamanho do Set':'Set size','Posição vertical geral':'Overall vertical position','Mostrar borda/detalhes':'Show border/details','Contorno/sombra':'Outline/shadow','Contorno':'Outline','Sombra':'Shadow','Resetar aparência e tamanho':'Reset appearance and size','Posições dos elementos':'Element positions','Ajusta nomes, Killer/Survivors e estatísticas. Placar, campeonato e Set ficam fixos.':'Adjusts names, Killer/Survivors and stats. Score, championship and Set stay fixed.','Nome':'Name','Reset':'Reset','Horizontal':'Horizontal','Vertical':'Vertical','Estatísticas':'Stats','Estilo da overlay':'Overlay style','Confirmar cor':'Confirm color','Usar esta cor?':'Use this color?','Cancelar':'Cancel','Confirmar':'Confirm'},
- es:{'DBD Tournament Control':'Control de Torneo DBD','Idioma':'Idioma','URLs para OBS e Dock':'URLs para OBS y Dock','URL para Fonte de Navegador do OBS':'URL para Fuente de Navegador de OBS','Copiar URL':'Copiar URL','Copiado!':'¡Copiado!','Use 1920 × 1080 no OBS.':'Usa 1920 × 1080 en OBS.','URL do Painel para Dock do OBS':'URL del Panel para Dock de OBS','No OBS: Painéis/Docks → Painéis de navegador personalizados.':'En OBS: Paneles/Docks → Paneles de navegador personalizados.','Campeonato':'Campeonato','Nome do campeonato':'Nombre del campeonato','TIME A':'EQUIPO A','TIME B':'EQUIPO B','Gerador':'Generador','Gancho':'Gancho','Primeiro Gancho':'Primer Gancho','Set atual':'Set actual','Resetar contadores do set':'Reiniciar contadores del set','Mostrar ícones Killer / Survivors':'Mostrar iconos Killer / Survivors','Mostrar nomes KILLER / SURVIVORS':'Mostrar nombres KILLER / SURVIVORS','Mostrar Set':'Mostrar Set','Time que está de Killer':'Equipo que juega Killer','Time A':'Equipo A','Time B':'Equipo B','Aparência e tamanho':'Apariencia y tamaño','Fonte dos textos / nomes':'Fuente de textos / nombres','Fonte dos números':'Fuente de números','Destaque':'Destacado','Números':'Números','Cor Time A':'Color Equipo A','Cor Time B':'Color Equipo B','Preset':'Preset','Salvar':'Guardar','Excluir':'Eliminar','Personalizado':'Personalizado','＋ Criar preset':'＋ Crear preset','Opacidade':'Opacidad','Tamanho da HUD':'Tamaño del HUD','Nomes dos times':'Nombres de equipos','Estatísticas + ícones':'Estadísticas + iconos','Nome do campeonato':'Nombre del campeonato','Ícones Killer / Survivors':'Iconos Killer / Survivors','Nomes Killer / Survivors':'Nombres Killer / Survivors','Tamanho do Set':'Tamaño del Set','Posição vertical geral':'Posición vertical general','Mostrar borda/detalhes':'Mostrar borde/detalles','Contorno/sombra':'Contorno/sombra','Contorno':'Contorno','Sombra':'Sombra','Resetar aparência e tamanho':'Restablecer apariencia y tamaño','Posições dos elementos':'Posiciones de los elementos','Ajusta nomes, Killer/Survivors e estatísticas. Placar, campeonato e Set ficam fixos.':'Ajusta nombres, Killer/Survivors y estadísticas. Marcador, campeonato y Set permanecen fijos.','Nome':'Nombre','Reset':'Restablecer','Horizontal':'Horizontal','Vertical':'Vertical','Estatísticas':'Estadísticas','Estilo da overlay':'Estilo del overlay','Confirmar cor':'Confirmar color','Usar esta cor?':'¿Usar este color?','Cancelar':'Cancelar','Confirmar':'Confirmar'}
-};
-function tr(pt){return state&&state.language!=='pt'?(T[state.language]?.[pt]||pt):pt;}
-function snapshot(){const v={};for(const k of presetKeys)v[k]=state[k];return v;}
-function applyValues(v){if(v)for(const k of presetKeys)if(v[k]!==undefined)state[k]=v[k];}
-async function load(){state=await (await fetch('/state')).json();defaults();activePreset='';render();}
-function save(){fetch('/state',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(state)});render();}
-function n(side,key,d){const limits={gen:5,hook:12,first:4};state[side][key]=Math.min(limits[key],Math.max(0,state[side][key]+d));save()}
-function score(side,d){let k='score'+side;state[k]=Math.max(0,state[k]+d);save()}
-function resetPos(group){const m={nameA:['nameAX','nameAY'],roleA:['roleAX','roleAY'],statsA:['statsAX','statsAY'],nameB:['nameBX','nameBY'],roleB:['roleBX','roleBY'],statsB:['statsBX','statsBY']};for(const k of m[group]||[])state[k]=0;save()}
-function markCustom(){if(activePreset===''){state.customValues=snapshot();}saveQuiet();}
-function saveQuiet(){fetch('/state',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(state)});}
-function requestColorConfirm(key,value){pendingColor={key,value,old:state[key]};$('#colorPreview').style.background=value;$('#colorConfirmModal').hidden=false;translatePage();}
-function confirmColor(){if(!pendingColor)return;state[pendingColor.key]=pendingColor.value;pendingColor=null;$('#colorConfirmModal').hidden=true;if(activePreset==='')state.customValues=snapshot();save();}
-function cancelColor(){if(!pendingColor)return;const el=$('#'+pendingColor.key);if(el)el.value=pendingColor.old;pendingColor=null;$('#colorConfirmModal').hidden=true;}
-function presetChanged(v){if(v==='__new__'){createPreset();return;} if(v===''){if(!state.customValues)state.customValues=snapshot();applyValues(state.customValues);activePreset='';draftPresetName='';save();return;}const p=(state.customPresets||[]).find(x=>x.name===v);if(p){applyValues(p.values);activePreset=p.name;draftPresetName='';save();}}
-function createPreset(){state.customPresets ||= [];if(state.customPresets.length>=5){alert(tr('Limite de 5 presets atingido.'));renderPresetSelect();return;}let name=prompt(tr('Nome do novo preset:'),'');if(name===null){renderPresetSelect();return;}name=name.trim().slice(0,28);if(!name){alert(tr('Digite um nome para o preset.'));renderPresetSelect();return;}if(state.customPresets.some(p=>p.name.toLowerCase()===name.toLowerCase())){alert(tr('Já existe um preset com esse nome.'));renderPresetSelect();return;}draftPresetName=name;activePreset='__draft__';renderPresetSelect();updatePresetButtons();}
-function saveCurrentPreset(){state.customPresets ||= [];if(activePreset===''){state.customValues=snapshot();save();return;}const name=activePreset==='__draft__'?draftPresetName:activePreset;if(!name)return;const item={name,values:snapshot()};const i=state.customPresets.findIndex(p=>p.name===name);if(i>=0)state.customPresets[i]=item;else if(state.customPresets.length<5)state.customPresets.push(item);activePreset=name;draftPresetName='';save();}
-function deleteCurrentPreset(){if(!activePreset||activePreset==='__draft__'){return;}const p=(state.customPresets||[]).find(x=>x.name===activePreset);if(!p)return;if(!confirm(tr('Excluir o preset "{name}"?').replace('{name}',p.name)))return;state.customPresets=state.customPresets.filter(x=>x.name!==activePreset);applyValues(state.customValues||{});activePreset='';draftPresetName='';save();}
-function renderPresetSelect(){const el=$('#appearancePreset');if(!el)return;el.innerHTML=`<option value="">${tr('Personalizado')}</option>`+(state.customPresets||[]).map(p=>`<option value="${esc(p.name)}">${esc(p.name)}</option>`).join('')+(activePreset==='__draft__'?`<option value="__draft__">${esc(draftPresetName)} (${tr('novo')})</option>`:'')+`<option value="__new__">${tr('＋ Criar preset')}</option>`;el.value=activePreset==='__draft__'?'__draft__':activePreset;}
-function updatePresetButtons(){const del=$('#deletePresetBtn');if(del)del.disabled=!activePreset||activePreset==='__draft__';}
-function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function resetAppearance(){Object.assign(state,{accentColor:'#ffffff',teamAColor:'#ffffff',teamBColor:'#ffffff',numberColor:'#ffffff',textFont:'Arial',numberFont:'Arial',bgOpacity:88,showBorder:true,textOutline:true,hudScale:100,teamNameScale:100,statsScale:100,champScale:100,roleIconScale:100,roleLabelScale:100,setScale:100,hudY:78,outlineSize:2,shadowSize:4});if(activePreset==='')state.customValues=snapshot();save()}
-function defaults(){const d={language:'pt',championship:'DBD CHAMPIONSHIP',teamA:'TIME A',teamB:'TIME B',overlayStyle:1,accentColor:'#ffffff',teamAColor:'#ffffff',teamBColor:'#ffffff',numberColor:'#ffffff',textFont:'Arial',numberFont:'Arial',bgOpacity:88,showBorder:true,textOutline:true,showRoles:true,showRoleLabels:true,killerSide:'A',showSet:true,hudScale:100,teamNameScale:100,statsScale:100,champScale:100,roleIconScale:100,roleLabelScale:100,setScale:100,hudY:78,outlineSize:2,shadowSize:4,customPresets:[],customValues:null,nameAX:0,nameAY:0,nameBX:0,nameBY:0,roleAX:0,roleAY:0,roleBX:0,roleBY:0,statsAX:0,statsAY:0,statsBX:0,statsBY:0};for(const [k,v] of Object.entries(d))if(state[k]===undefined)state[k]=v;if(!state.customValues)state.customValues=snapshot();}
-function changeLanguage(lang){state.language=['pt','en','es'].includes(lang)?lang:'pt';save();}
-function translatePage(){document.documentElement.lang=state.language==='pt'?'pt-BR':state.language;const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let node;while(node=walker.nextNode()){if(node.parentElement&&['SCRIPT','STYLE','OPTION'].includes(node.parentElement.tagName))continue;if(node._pt===undefined){const raw=node.nodeValue;const trimmed=raw.trim();if(trimmed)node._pt=trimmed;}if(node._pt){const translated=tr(node._pt);node.nodeValue=node.nodeValue.replace(node.nodeValue.trim(),translated);}}const champ=$('#championship');if(champ)champ.placeholder=tr('Nome do campeonato');}
-function render(){defaults();$('#language').value=state.language;$('#championship').value=state.championship;$('#overlayStyle').value=state.overlayStyle;for(const k of ['accentColor','teamAColor','teamBColor','numberColor'])if($('#'+k))$('#'+k).value=state[k];const tf=$('#textFont'),nf=$('#numberFont');if(tf)tf.value=state.textFont;if(nf)nf.value=state.numberFont;for(const [id,key,suffix] of [['bgOpacity','bgOpacity','%'],['hudScale','hudScale','%'],['teamNameScale','teamNameScale','%'],['statsScale','statsScale','%'],['champScale','champScale','%'],['roleIconScale','roleIconScale','%'],['roleLabelScale','roleLabelScale','%'],['setScale','setScale','%'],['hudY','hudY',' px'],['outlineSize','outlineSize',' px'],['shadowSize','shadowSize',' px']]){const e=$('#'+id);if(e){e.value=state[key];$('#'+id+'Value').textContent=state[key]+suffix;}}$('#showBorder').checked=state.showBorder;$('#textOutline').checked=state.textOutline;$('#showRoles').checked=state.showRoles;$('#showRoleLabels').checked=state.showRoleLabels;$('#showSet').checked=state.showSet;const kr=document.querySelector('input[name="killerSide"][value="'+state.killerSide+'"]');if(kr)kr.checked=true;$('#teamA').value=state.teamA;$('#teamB').value=state.teamB;$('#scoreA').textContent=state.scoreA;$('#scoreB').textContent=state.scoreB;for(const s of ['a','b'])for(const k of ['gen','hook','first'])$('#'+s+k).textContent=state[s][k];$('#currentSet').value=Math.max(1,Math.min(9,+state.currentSet||1));for(const key of ['nameAX','nameAY','roleAX','roleAY','statsAX','statsAY','nameBX','nameBY','roleBX','roleBY','statsBX','statsBY']){const e=$('#'+key);if(e){e.value=state[key]||0;const v=$('#'+key+'Value');if(v)v.textContent=(state[key]||0)+' px';}}renderPresetSelect();updatePresetButtons();translatePage();}
-// Dynamic translation strings
-T.en['Limite de 5 presets atingido.']='Limit of 5 presets reached.';T.es['Limite de 5 presets atingido.']='Se alcanzó el límite de 5 presets.';
-T.en['Nome do novo preset:']='New preset name:';T.es['Nome do novo preset:']='Nombre del nuevo preset:';
-T.en['Digite um nome para o preset.']='Enter a name for the preset.';T.es['Digite um nome para o preset.']='Escribe un nombre para el preset.';
-T.en['Já existe um preset com esse nome.']='A preset with this name already exists.';T.es['Já existe um preset com esse nome.']='Ya existe un preset con ese nombre.';
-T.en['Excluir o preset "{name}"?']='Delete preset "{name}"?';T.es['Excluir o preset "{name}"?']='¿Eliminar el preset "{name}"?';
-T.en['novo']='new';T.es['novo']='nuevo';
-window.onload=load;
+let pendingReset=null, resetFocus=null;
+let state, pending=[], sending=false, events, retryTimer;
+const $=s=>document.querySelector(s);
+const clone=v=>JSON.parse(JSON.stringify(v));
+const clamp=(v,min,max)=>Math.max(min,Math.min(max,Math.round(Number(v)||0)));
+function merge(target,patch){for(const [k,v] of Object.entries(patch)){if(['a','b'].includes(k))Object.assign(target[k] ||= {},v);else target[k]=v;}return target;}
+function scaleActual(display){return 90+(clamp(display,50,100)-50)*.4;}
+function scaleDisplay(actual){return Math.round(50+(Math.max(90,Math.min(110,Number(actual)||100))-90)/.4);}
+function normalizeLocal(){state.hudTop=clamp(state.hudTop??78,6,100);state.hudScale=Math.max(90,Math.min(110,Number(state.hudScale)||100));state.bgOpacity=clamp(state.bgOpacity??85,0,100);state.bgColor ||= '#151d23';state.bestOf=state.bestOf===3?3:5;const max=(state.bestOf+1)/2;for(const s of ['A','B'])state['score'+s]=clamp(state['score'+s],0,max);state.currentSet=clamp(state.currentSet,1,state.bestOf);}
+function edit(patch){merge(state,patch);normalizeLocal();const last=pending.length-1;if(last>=0&&(!sending||last>0))merge(pending[last],clone(patch));else pending.push(clone(patch));render();flush();}
+function step(side,key,delta){const limits={gen:5,hook:12,first:4};counterValue(side,key,clamp(state[side][key]+delta,0,limits[key]));}
+function counterValue(side,key,value){const limits={gen:5,hook:12,first:4};edit({[side]:{[key]:clamp(value,0,limits[key])}});}
+function scoreStep(side,delta){scoreValue(side,state['score'+side]+delta);}
+function scoreValue(side,value){edit({['score'+side]:clamp(value,0,(state.bestOf+1)/2)});}
+const defaultColors={"teamAColor":"#8ba99f","teamBColor":"#94a1b8","bgColor":"#151d23","accentColor":"#d4dedf"};
+function resetColor(key){if(Object.hasOwn(defaultColors,key))edit({[key]:defaultColors[key]});}
+let overlayDragId=null,overlayDragOffset=14;
+function positionFromPointer(event){const pad=$('#positionPad'),handle=$('#positionHandle'),rect=pad.getBoundingClientRect(),travel=rect.height-16-handle.offsetHeight;edit({hudTop:clamp(6+((event.clientY-rect.top-overlayDragOffset-8)/travel)*94,6,100)});}
+function startOverlayDrag(event){if(event.button!==0||overlayDragId!==null)return;event.preventDefault();const handle=$('#positionHandle');overlayDragOffset=event.target.closest('#positionHandle')?event.clientY-handle.getBoundingClientRect().top:handle.offsetHeight/2;overlayDragId=event.pointerId;handle.focus();$('#positionPad').setPointerCapture(event.pointerId);$('#positionPad').classList.add('dragging');positionFromPointer(event);}
+function moveOverlayDrag(event){if(event.pointerId===overlayDragId)positionFromPointer(event);}
+function endOverlayDrag(event){if(event.pointerId!==overlayDragId)return;overlayDragId=null;const pad=$('#positionPad');pad.classList.remove('dragging');if(pad.hasPointerCapture(event.pointerId))pad.releasePointerCapture(event.pointerId);}
+function positionKey(event){const steps={ArrowUp:-1,ArrowDown:1,PageUp:-10,PageDown:10};let value;if(event.key==='Home')value=6;else if(event.key==='End')value=100;else if(Object.hasOwn(steps,event.key))value=state.hudTop+steps[event.key]*(event.shiftKey?5:1);else return;event.preventDefault();edit({hudTop:clamp(value,6,100)});}
+function resetScores(){requestReset('scores');}
+function resetCounters(){requestReset('counters');}
+function requestReset(kind){pendingReset=kind;resetFocus=document.activeElement;$('#resetTitle').textContent=kind==='scores'?'Zerar placar?':'Zerar contadores?';$('#resetDescription').textContent=kind==='scores'?'As vitórias dos dois times serão zeradas. Os contadores permanecem.':'Geradores, ganchos e primeiros ganchos dos dois times serão zerados. O placar permanece.';$('#resetDialog').showModal();}
+function cancelReset(){pendingReset=null;$('#resetDialog').close();resetFocus?.focus();}
+function applyReset(kind){if(kind==='scores')edit({scoreA:0,scoreB:0});else if(kind==='counters')edit({a:{gen:0,hook:0,first:0},b:{gen:0,hook:0,first:0}});}
+function confirmReset(){const kind=pendingReset;cancelReset();if(kind)applyReset(kind);}
+function status(message,error=false){$('#connectionDot').title=message;$('#connectionDot').setAttribute('aria-label',message);$('#connectionDot').classList.toggle('error',error);$('#connectionStatus').hidden=!error;$('#connectionStatus').textContent=error?message:'';}
+function setInput(id,value){const input=$('#'+id);if(input!==document.activeElement)input.value=value;}
+function render(){
+ normalizeLocal();
+ document.documentElement.style.setProperty('--a',state.teamHighlights===false?state.accentColor:state.teamAColor);
+ document.documentElement.style.setProperty('--b',state.teamHighlights===false?state.accentColor:state.teamBColor);
+ $('#teamHighlights').checked=state.teamHighlights!==false;
+ $('#overlayGradient').checked=state.overlayGradient!==false;
+ const handle=$('#positionHandle');handle.style.top=(8+(state.hudTop-6)/94*48)+'px';handle.setAttribute('aria-valuenow',state.hudTop);handle.setAttribute('aria-valuetext',state.hudTop+' pixels do topo');
+ document.body.className=state.overlayStyle<=4?'numeric':state.overlayStyle===6?'bars':state.overlayStyle===7?'circles':state.overlayStyle===8?'chevrons':'diamonds';
+ for(const k of ['championship','teamA','teamB','scoreA','scoreB','overlayStyle','bestOf','teamAColor','teamBColor','accentColor','bgColor','bgOpacity'])setInput(k,state[k]);
+ const sets=$('#setButtons');if(sets.children.length!==state.bestOf)sets.innerHTML=Array.from({length:state.bestOf},(_,i)=>'<button type="button" aria-label="Set '+(i+1)+'" onclick="edit({currentSet:'+(i+1)+'})">'+(i+1)+'</button>').join('');for(const [i,button] of [...sets.children].entries()){const selected=i+1===state.currentSet;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));}
+ setInput('hudScale',scaleDisplay(state.hudScale));$('#scaleValue').textContent=scaleDisplay(state.hudScale);$('#opacityValue').textContent=state.bgOpacity+'%';
+ document.querySelector('input[name=killerSide][value="'+state.killerSide+'"]').checked=true;
+ const target=(state.bestOf+1)/2;
+ for(const side of ['A','B']){
+  const scoreInput=$('#score'+side);scoreInput.max=target;
+  const scoreRow=scoreInput.parentElement;scoreRow.querySelector('button:first-child').disabled=state['score'+side]<=0;scoreRow.querySelector('button:last-child').disabled=state['score'+side]>=target;
+  $('#wins'+side).innerHTML=Array.from({length:target},(_,i)=>'<i class="'+(i<state['score'+side]?'won':'')+'"></i>').join('');
+  const role=$('#panelRole'+side),killer=state.killerSide===side;role.src='assets/'+(killer?'killer':'survivor')+'.png';role.alt=killer?'Killer':'Survivors';role.title=killer?'Killer':'Survivors';
+ }
+ for(const side of ['a','b'])for(const [key,max] of [['gen',5],['hook',12],['first',4]]){
+  setInput(side+key,state[side][key]);const row=$('#'+side+key).closest('.counter');row.querySelector('.minus').disabled=state[side][key]<=0;row.querySelector('.plus').disabled=state[side][key]>=max;
+ }
+}
+async function flush(){
+ if(sending||!pending.length)return;sending=true;let failed=false;status('Salvando…');
+ try{
+  while(pending.length){
+   const response=await fetch('/state',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(pending[0])});
+   if(!response.ok)throw Error('HTTP '+response.status);
+   const confirmed=await response.json();pending.shift();state=confirmed;for(const patch of pending)merge(state,patch);render();
+  }
+  const latest=await fetch('/state');if(!latest.ok)throw Error('HTTP '+latest.status);state=await latest.json();for(const patch of pending)merge(state,patch);render();status('Sincronizado');
+ }catch(error){failed=true;status('Falha ao salvar. Tentando reconectar…',true);}
+ finally{sending=false;if(pending.length){clearTimeout(retryTimer);retryTimer=setTimeout(flush,failed?1500:0);}}
+}
+async function load(){
+ try{
+  const response=await fetch('/state');if(!response.ok)throw Error();state=await response.json();render();$('#resetDialog').addEventListener('cancel',()=>{pendingReset=null;});
+  $('#obsUrl').value=location.origin+'/overlay.html';$('#panelUrl').value=location.origin+'/panel.html';
+  events?.close();events=new EventSource('/events');events.onmessage=event=>{if(sending||pending.length)return;state=JSON.parse(event.data);render();status('Sincronizado');};events.onerror=()=>status('Servidor desconectado. Reconectando…',true);status('Sincronizado');
+ }catch(error){status('Servidor indisponível. Reconectando…',true);setTimeout(load,1500);}
+}
+async function copyUrl(id,button){try{await navigator.clipboard.writeText($('#'+id).value);button.textContent='Copiado';setTimeout(()=>button.textContent='Copiar',1800);}catch{const input=$('#'+id);input.select();button.textContent='Ctrl+C';}}
+window.addEventListener('DOMContentLoaded',load);
