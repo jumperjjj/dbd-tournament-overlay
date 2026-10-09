@@ -1,0 +1,23 @@
+[package]
+name = "dbd-tournament-overlay"
+version = "2.0.0"
+description = "Controle de torneios DBD"
+authors = ["jumperjjj"]
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "image-ico"] }
+tauri-plugin-single-instance = "2"
+tauri-plugin-clipboard-manager = "2"
+serde_json = "1"
+axum = "0.8"
+tokio = { version = "1", features = ["rt-multi-thread", "net", "sync", "fs", "macros"] }
+async-stream = "0.3"
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
