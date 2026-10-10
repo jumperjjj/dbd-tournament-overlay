@@ -55,7 +55,7 @@ fn normalize(value: &Value) -> Result<Value, StatusCode> {
 
 fn valid_origin(headers: &HeaderMap) -> bool {
     headers.get(header::ORIGIN).map(|origin| origin.to_str().ok().map(|s|
-        ["http://localhost:8765", "http://127.0.0.1:8765"].contains(&s)).unwrap_or(false)).unwrap_or(true)
+        ["http://localhost:8766", "http://127.0.0.1:8766"].contains(&s)).unwrap_or(false)).unwrap_or(true)
 }
 async fn read(State(store): State<Store>) -> Json<Value> { Json(store.value.lock().await.clone()) }
 async fn write(State(store): State<Store>, headers: HeaderMap, Json(patch): Json<Value>) -> Result<Json<Value>, StatusCode> {
@@ -114,7 +114,7 @@ pub async fn start(dir: PathBuf) -> Result<u16, Box<dyn std::error::Error>> {
         .route("/events", get(events)).fallback(asset)
         .layer(DefaultBodyLimit::max(64 * 1024))
         .with_state(Store { value: Arc::new(Mutex::new(value)), tx, file });
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:8765").await?;
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:8766").await?;
     let port = listener.local_addr()?.port();
     tauri::async_runtime::spawn(async move { if let Err(e) = axum::serve(listener, router).await { eprintln!("{e}"); } });
     Ok(port)

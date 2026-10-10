@@ -74,7 +74,7 @@ function createServer({stateFile}={}) {
  return server;
 }
 if (require.main===module) {
- const port=Number(process.env.DBD_PREVIEW_PORT||8765);
+ const port=Number(process.env.DBD_PREVIEW_PORT||8766);
  const server=createServer({stateFile:path.resolve(__dirname,'../.preview-state/state.json')});
  server.on('error',error=>{console.error('Não foi possível iniciar a prévia:',error.message);process.exitCode=1;});
  server.listen(port,'127.0.0.1',()=>console.log('Prévia local: http://127.0.0.1:'+port+'/panel.html'));

@@ -55,7 +55,7 @@ fn main() {
             use std::os::windows::ffi::OsStrExt;
             #[link(name = "user32")]
             extern "system" { fn MessageBoxW(hwnd: isize, text: *const u16, caption: *const u16, kind: u32) -> i32; }
-            let message: Vec<u16> = std::ffi::OsStr::new(&format!("Não foi possível iniciar o aplicativo.\n\n{error}\n\nVerifique se outro servidor está usando a porta 8765."))
+            let message: Vec<u16> = std::ffi::OsStr::new(&format!("Não foi possível iniciar o aplicativo.\n\n{error}\n\nVerifique se outro servidor está usando a porta 8766."))
                 .encode_wide().chain(Some(0)).collect();
             let caption: Vec<u16> = std::ffi::OsStr::new("DBD Tournament Overlay").encode_wide().chain(Some(0)).collect();
             unsafe { MessageBoxW(0, message.as_ptr(), caption.as_ptr(), 0x10); }

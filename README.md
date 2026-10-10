@@ -1,15 +1,15 @@
-# DBD Tournament Overlay v2.0.0
+# DBD Tournament Overlay v2.0.1
 
 Aplicativo Windows em Tauri para controlar campeonatos de Dead by Daylight. O painel **DBD Tournament Control** também funciona como dock do OBS.
 
 ## Usar no OBS
 
-Baixe o instalador em [Releases](https://github.com/jumperjjj/dbd-tournament-overlay/releases), instale e mantenha o programa aberto.
+Baixe o instalador ou o executável portátil em [Releases](https://github.com/jumperjjj/dbd-tournament-overlay/releases), instale e mantenha o programa aberto.
 
 | Uso | Endereço |
 | --- | --- |
-| Dock de navegador | `http://127.0.0.1:8765/panel.html` |
-| Fonte de Navegador | `http://127.0.0.1:8765/overlay.html` |
+| Dock de navegador | `http://127.0.0.1:8766/panel.html` |
+| Fonte de Navegador | `http://127.0.0.1:8766/overlay.html` |
 
 Configure a Fonte de Navegador em **1920 × 1080**. O servidor funciona somente neste computador. Fechar a janela recolhe para a bandeja; **Sair e encerrar overlay** encerra o servidor.
 
@@ -29,7 +29,7 @@ A escala no painel vai de 50 a 100, equivalente a 90%–110% do tamanho base. N�
 
 ## Atualizar da versão Electron
 
-Encerre e desinstale a versão Electron antes de instalar a v2.0.0. O novo instalador não remove automaticamente a v1.x; apenas um servidor pode usar a porta 8765. Presets, fontes e ajustes individuais da v1.x não são importados automaticamente. A nova configuração é feita pelo painel.
+Encerre e desinstale a versão Electron antes de instalar a v2.0.1. O novo instalador não remove automaticamente a v1.x; apenas um servidor pode usar a porta 8766. Presets, fontes e ajustes individuais da v1.x não são importados automaticamente. A nova configuração é feita pelo painel.
 
 ## Desenvolvimento
 
@@ -52,10 +52,16 @@ npm run dist
 node scripts/smoke-native.cjs
 ```
 
-O instalador fica em `src-tauri/target/release/bundle/nsis/`. O smoke test deve ser executado sem outro servidor na porta 8765 e usa as configurações do aplicativo daquele usuário: prefira uma máquina de teste ou o GitHub Actions.
+O instalador fica em `src-tauri/target/release/bundle/nsis/`. O smoke test deve ser executado sem outro servidor na porta 8766 e usa as configurações do aplicativo daquele usuário: prefira uma máquina de teste ou o GitHub Actions.
 
 ## Release
 
-O workflow Windows compila, executa testes JavaScript/Rust e testa o executável nativo, incluindo reinício e persistência. Na execução manual, habilitar **Publicar release v2.0.0 após os testes** publica o instalador e seu SHA-256 somente se todas as verificações passarem.
+O workflow Windows compila, executa testes JavaScript/Rust e testa o executável nativo, incluindo reinício e persistência. Na execução manual, habilitar **Publicar release v2.0.1 após os testes** publica o instalador e seu SHA-256 somente se todas as verificações passarem.
 
 A interface foi conferida no navegador. Não houve teste de transmissão no OBS nem comparação de consumo de RAM/CPU.
+
+## Portátil e bloqueio do Windows
+
+O portátil abre sem instalar, usa WebView2 e salva ajustes no diretório de dados do usuário. Não execute portátil e instalado ao mesmo tempo. Esta distribuição ainda não está assinada por fornecedor confiável e pode ser bloqueada pelo Controle Inteligente de Aplicativos; o portátil não elimina esse bloqueio.
+
+A tag v2.0.1 também inicia a compilação, verificação e publicação desta release.

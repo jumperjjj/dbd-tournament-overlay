@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const {spawn}=require('node:child_process');
 const path=require('node:path');
 const exe=path.resolve('src-tauri/target/release/dbd-tournament-overlay.exe');
-const base='http://127.0.0.1:8765';
+const base='http://127.0.0.1:8766';
 let child;
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 async function start(){
@@ -17,7 +17,7 @@ async function start(){
  throw Error('Native local server did not start');
 }
 async function stop(){if(!child)return;const running=child;child=null;if(running.exitCode!==null)return;await new Promise(r=>{running.once('exit',r);running.kill();});await delay(700);}
-async function patch(value){const r=await fetch(base+'/state',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(value)});assert.equal(r.status,200);return r.json();}
+async function patch(value){const r=await fetch(base+'/state',{method:'PATCH',headers:{'Content-Type':'application/json',Origin:base},body:JSON.stringify(value)});assert.equal(r.status,200);return r.json();}
 (async()=>{
  try{
   await start();
